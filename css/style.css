@@ -114,3 +114,103 @@ summary { cursor:pointer; color: var(--muted); }
 /* Toast */
 .toast { position: fixed; right:16px; bottom:16px; display:grid; gap:8px; z-index:60; }
 .toast .msg { background: var(--panel); border:1px solid var(--border); border-left:4px solid var(--brand); color:var(--text); padding:10px 12px; border-radius:10px; box-shadow: var(--shadow); }
+
+/* Colunas extras (descanso e próxima entrada) — escondidas em telas pequenas */
+@media (max-width: 760px){
+  .col-rest, .col-next { display:none; }
+}
+
+
+/* Força o bloco do fuso para a direita da toolbar */
+.tz-right { margin-left: auto; text-align: right; }
+
+
+/* Mantém fuso na MESMA linha dos chips */
+.toolbar { display:flex; align-items:center; gap:8px; flex-wrap: nowrap; }
+.toolbar .chips { flex: 1 1 auto; min-width: 0; }
+.tz-right { margin-left: auto; text-align: right; flex: 0 0 auto; white-space: nowrap; }
+
+/* Em telas bem estreitas, permita quebrar (acessibilidade) */
+@media (max-width: 520px){
+  .toolbar { flex-wrap: wrap; }
+  .tz-right { width: 100%; text-align: left; margin-left: 0; }
+}
+
+/* Tooltip do selo de interjornada */
+.tooltip { position: relative; }
+.tooltip .tooltip-content {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: var(--shadow);
+  white-space: normal;
+  width: max(260px, 24ch);
+  max-width: 360px;
+  z-index: 80;
+  display: none;
+}
+.tooltip:hover .tooltip-content,
+.tooltip:focus-within .tooltip-content { display: block; }
+.tooltip .tooltip-content::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 12px;
+  width: 10px;
+  height: 10px;
+  background: inherit;
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+
+
+.gap-summary {
+  margin: 8px 0 10px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,.03);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+.gap-summary .ok { color: var(--ok); font-weight: 600; }
+.gap-summary .err { color: var(--err); font-weight: 600; }
+
+/* Tooltip tweaks: separar linhas melhor */
+.tooltip .tooltip-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 6px 0;
+}
+
+/* Tooltip padrão (todos os selos) */
+
+
+/* Indicador visível (ⓘ) para badges que têm tooltip */
+.status.tooltip::after {
+  content: " \24D8"; /* Unicode circled-i */
+  font-size: 0.8em;
+  margin-left: 4px;
+  opacity: 0.8;
+}
+
+/* Ícone visível de tooltip nos selos */
+.tooltip { position: relative; }
+
+
+/* Largura dinâmica da página */
+.container { max-width: clamp(1024px, 92vw, 1400px); }
+
+/* Resultados ocupando toda a largura e com rolagem horizontal se precisar */
+#output { overflow-x: auto; }
+#output table { min-width: 980px; table-layout: auto; }
+
+/* Evita quebra em colunas críticas; deixa validações quebrarem para não estourar a largura */
+#tbl th, #tbl td { white-space: nowrap; }
+#tbl th:last-child, #tbl td:last-child { white-space: normal; }

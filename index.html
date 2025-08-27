@@ -124,7 +124,7 @@
     <section class="card" id="output" style="display:none; margin-top:16px">
       <div class="toolbar">
         <div class="chips" id="summary"></div>
-        <div class="muted">Fuso do navegador: <span id="tz" class="kbd"></span></div>
+        <div class="muted tz-right">Fuso do navegador: <span id="tz" class="kbd"></span></div>
       </div>
       <table id="tbl">
         <thead>
@@ -132,8 +132,10 @@
             <th>#</th>
             <th>Baliza</th>
             <th>Janela da jornada</th>
+            <th class="col-rest">Descanso (real/exig)</th>
+            <th class="col-next">Próx. entrada permitida</th>
             <th class="right">Total (horas)</th>
-            <th>Validações de regra</th>
+            <th>Validações de regra <span class="tooltip" tabindex="0" aria-label="Ajuda sobre validações"><span class="tooltip-content">As validações mostram se a jornada respeita: <b>10h/jornada</b>, <b>interjornada (11h)</b> e quando houve <b>baliza (&lt; 5h)</b>. Toque ou passe o mouse nos ícones “i” de cada selo para ver o cálculo utilizado.</span></span></th>
           </tr>
         </thead>
         <tbody></tbody>

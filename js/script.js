@@ -1,5 +1,6 @@
 // script.js — lógica do Validador de Jornadas
 
+
 const $ = (s)=>document.querySelector(s);
 const rows = $('#rows');
 const overlay = $('#overlay');
@@ -10,6 +11,12 @@ const p2 = (n)=>String(n).padStart(2,'0');
 const fmt = (dt)=>`${dt.getFullYear()}-${p2(dt.getMonth()+1)}-${p2(dt.getDate())} ${p2(dt.getHours())}:${p2(dt.getMinutes())}`;
 const fmtH = (ms)=>{ const m=Math.round(ms/60000); const h=Math.floor(m/60), mm=m%60; return `${h}h${p2(mm)}`; };
 function notify(msg, ms=2200){ const el=document.createElement('div'); el.className='msg'; el.textContent=msg; toast.appendChild(el); setTimeout(()=>el.remove(), ms); }
+
+// helper: badge — cria selo com UM único ícone de ajuda e tooltip descritivo
+function badge(label, bodyHtml, kind='status'){
+  const cls = kind==='ok' ? 'status ok' : (kind==='err' ? 'status err' : 'status');
+  return `<span class="${cls} tooltip" tabindex="0">${label}<span class="tooltip-content">${bodyHtml}</span></span>`;
+}
 
 /* ======= Tema ======= */
 function getThemePreference(){
@@ -92,34 +99,51 @@ function render(jornadas){
   $('#tz').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || '—';
   const tb=$('#tbl tbody'); tb.innerHTML='';
   let totalWork=0;
+  let prevEnd=null;
   for(const j of jornadas){
     totalWork += j.work;
     const tr=document.createElement('tr');
     const within = j.flags.includes('Dentro do limite de 10h');
     const valid=[];
-    valid.push(within ? `<span class="status ok">≤ 10h</span>` : `<span class="status err">Excedeu 10h</span>`);
-    if(j.idx>1){
-      if(!j.interjornadaOK){
-        const falta=(ELEVEN - j.interGap);
-        valid.push(`<span class="status err">Interjornada insuficiente (gap ${fmtH(j.interGap)}; faltaram ${fmtH(falta)})</span>`);
+    // Descanso entre jornadas realizado
+    const interGapLocal = prevEnd ? (j.start - prevEnd) : null;
+    // Carga de trabalho — limite 10h
+    if (j.flags.includes('Dentro do limite de 10h')) {
+      const saldo = (10*3600000) - j.work;
+      valid.push(badge('≤ 10h', `<div><b>Carga na jornada:</b> ${fmtH(j.work)}</div><div><b>Limite:</b> 10h00</div><div><b>Saldo restante:</b> ${fmtH(saldo)}</div>`, 'ok'));
+    } else {
+      const exced = j.work - (10*3600000);
+      valid.push(badge('Excedeu 10h', `<div><b>Carga na jornada:</b> ${fmtH(j.work)}</div><div><b>Limite:</b> 10h00</div><div><b>Excedente:</b> ${fmtH(exced)}</div>`, 'err'));
+    }
+    // Interjornada — a partir da 2ª jornada
+    if (j.idx > 1 && interGapLocal!==null) {
+      if (j.interjornadaOK) {
+        valid.push(badge('Interjornada ≥ 11h', `<div><b>Fim anterior:</b> ${fmt(prevEnd)}</div><div><b>Início atual:</b> ${fmt(j.start)}</div><hr><div><b>Descanso realizado:</b> ${fmtH(interGapLocal)}</div><div><b>Exigido:</b> 11h00</div><div><b>Próx. entrada permitida:</b> ${fmt(new Date(prevEnd.getTime() + (11*3600000)))}</div>`, 'ok'));
       } else {
-        valid.push(`<span class="status ok">Interjornada ≥ 11h</span>`);
+        const falta = (11*3600000) - interGapLocal;
+        valid.push(badge('Interjornada insuficiente', `<div><b>Fim anterior:</b> ${fmt(prevEnd)}</div><div><b>Início atual:</b> ${fmt(j.start)}</div><hr><div><b>Descanso realizado (gap):</b> ${fmtH(interGapLocal)}</div><div><b>Exigido:</b> 11h00</div><div><b>Faltaram:</b> ${fmtH(falta)}</div><div><b>Próx. entrada permitida:</b> ${fmt(new Date(prevEnd.getTime() + (11*3600000)))}</div>`, 'err'));
       }
     }
-    if(j.crossDayBaliza){
-      valid.push(`<span class="status" title="Há segmentos desta jornada que começaram em outro dia mas foram mantidos pela baliza (&lt; 5h)">Baliza (atravessou dia)</span>`);
+    // Baliza — atravessou dia
+    if (j.crossDayBaliza) {
+      valid.push(badge('Baliza', `<div>Segmentos com início em <b>outro dia</b> (ex.: dia seguinte) foram <b>ancorados</b> nesta jornada porque o gap entre eles foi &lt; 5h (baliza).</div><div></div>`));
     }
-
     const balizaTxt = `${p2(j.start.getHours())}:${p2(j.start.getMinutes())} → ${p2(j.end.getHours())}:${p2(j.end.getMinutes())}`;
     const janelaTxt = `${fmt(j.start)} → ${fmt(j.end)}`;
 
+
+    const restTxt = prevEnd ? `${fmtH(j.start - prevEnd)}/11h00` : '—/11h00';
+    const nextAllowed = prevEnd ? fmt(new Date(prevEnd.getTime() + ELEVEN)) : '—';
     tr.innerHTML = `
       <td>${j.idx}</td>
       <td>${balizaTxt}</td>
       <td>${janelaTxt}</td>
+      <td class="col-rest">${restTxt}</td>
+      <td class="col-next">${nextAllowed}</td>
       <td class="right">${fmtH(j.work)}</td>
       <td>${valid.join(' ')}</td>`;
     tb.appendChild(tr);
+    prevEnd = j.end;
 
     const tr2=document.createElement('tr');
     const td=document.createElement('td'); td.colSpan=5;
@@ -127,10 +151,11 @@ function render(jornadas){
     const sum=document.createElement('summary'); sum.textContent='Detalhes';
     const list=document.createElement('div'); list.className='seglist';
     list.innerHTML = j.segs.map((s,i)=>{
-      const tag = s.balizadoPrevDia ? ' <span class="status" title="Segmento mantido na jornada do dia anterior pela regra de baliza (gap &lt; 5h)">balizado do dia anterior</span>' : '';
+      const tag = s.balizadoPrevDia ? ' <span class="status" title="Segmento incluído na jornada do dia anterior pela regra de baliza (gap &lt; 5h). A jornada é ancorada no primeiro intervalo.">balizado para o dia anterior</span>' : '';
       return `#${i+1} ${fmt(s.start)} → ${fmt(s.end)} (${fmtH(s.end-s.start)})${tag}`;
     }).join('<br>');
-    det.appendChild(sum); det.appendChild(list);
+    det.appendChild(sum);
+    det.appendChild(list);
     td.appendChild(det); tr2.appendChild(td);
     tb.appendChild(tr2);
   }
