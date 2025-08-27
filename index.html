@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jornadas • Baliza 5h00 • Interjornada 11h00 • Máx 10h00</title>
+  <meta name="color-scheme" content="dark light">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="overlay" id="overlay"><div class="spinner" aria-label="Analisando…"></div></div>
+  <div class="toast" id="toast"></div>
+  <div class="container">
+    <header>
+      <div class="header-row">
+        <div class="title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M4 4h16v6H4zM4 14h10v6H4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+            <path d="M20 14h-4v6h4v-6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+          </svg>
+          <h1>Controle da Jornada</h1>
+        </div>
+        <button class="btn secondary" id="toggleTheme"><span class="ico"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><span class="label">Tema escuro</span></button>
+      </div>
+      <p>Insira pares de <b>Entrada</b> e <b>Saída</b> (com <em>data</em> e <em>hora</em>). O app agrupa em jornadas,
+        aplica <b>baliza</b> &lt; 5h00, checa <b>interjornada</b> ≥ 11h00 e <b>10h00</b> por jornada.</p>
+    </header>
+
+    <section class="grid">
+      <div class="card">
+        <label>Intervalos (ordem livre)</label>
+        <div id="rows"></div>
+        <div class="buttons" style="margin-top:8px">
+          <button class="btn" id="add"><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Adicionar intervalo</button>
+          <button class="btn secondary" id="demo"><span class="ico"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>Carregar exemplo</button>
+          <button class="btn secondary" id="clear"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6v12m8-12v12M5 6l1-3h12l1 3"/></svg></span>Limpar</button>
+        </div>
+        <hr style="border:none; border-top:1px solid var(--border); margin:14px 0">
+        <div class="toolbar">
+          <div class="buttons">
+            <button class="btn" id="analyze"><span class="ico"><svg viewBox="0 0 24 24"><path d="M5 12h3m4 0h7M5 19h14M5 5h14"/></svg></span>Analisar</button>
+            <button class="btn secondary" id="save"><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 17v-6m0 0l-3 3m3-3l3 3M5 7h14"/></svg></span>Salvar local</button>
+            <button class="btn secondary" id="load"><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 7v6m0 0l3-3m-3 3l-3-3M5 17h14"/></svg></span>Carregar local</button>
+          </div>
+        </div>
+        <p class="footer">
+          Regras: <span class="kbd">baliza &lt; 5h00</span> mantém jornada; <span class="kbd">gap ≥ 5h00</span> inicia nova
+          (requer <span class="kbd">interjornada ≥ 11h00</span>); soma por jornada ≤ <span class="kbd">10h00</span>.
+        </p>
+      </div>
+
+      <div class="card" id="help">
+        <label>Ajuda rápida</label>
+        <ul style="margin:0 0 12px 16px; padding:0; color:var(--muted)">
+          <li>Use <b>data e hora</b> (ex.: 2025-08-26 12:30).</li>
+          <li>O app <b>ordena automaticamente</b> por entrada.</li>
+          <li>A <b>baliza</b> cola trechos na mesma jornada quando o gap &lt; 5h00.</li>
+          <li>Nova jornada com gap ≥ 5h00 precisa ter <b>descanso</b> ≥ 11h00.</li>
+          <li>Uma jornada não pode somar <b>mais de 10h00</b> trabalhadas.</li>
+        </ul>
+        <details>
+          <summary>Como funciona a análise?</summary>
+          <div class="seglist">
+            1) Ordena intervalos. 2) Constrói a jornada atual somando trabalho. 3) Se o próximo início ocorrer &lt; 5h00
+            após o último fim, mantém jornada (baliza); caso contrário, fecha a jornada e inicia outra (verificando
+            interjornada). 4) Marca violações.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- Exportar / Importar -->
+    <section class="card" id="exports" style="margin-top:16px;">
+      <div class="buttons">
+        <button class="btn secondary" id="exportJ"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5 5-5"/><path d="M12 4v12"/></svg></span>Exportar CSV (Jornadas)</button>
+        <button class="btn secondary" id="exportS"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5 5-5"/><path d="M12 4v12"/></svg></span>Exportar CSV (Segmentos)</button>
+        <button class="btn secondary" id="exportJSON"><span class="ico"><svg viewBox="0 0 24 24"><path d="M8 9l-3 3 3 3M16 9l3 3-3 3"/></svg></span>Exportar JSON</button>
+
+        <!-- BOTÃO + input oculto para import -->
+        <button class="btn secondary" id="importBtn"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 7v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7"/><path d="M7 13l5-5 5 5"/><path d="M12 19V8"/></svg></span>Importar JSON</button>
+        <input id="fileJSON" type="file" accept="application/json" hidden>
+      </div>
+    </section>
+
+    <section class="card" id="output" style="display:none; margin-top:16px">
+      <div class="toolbar">
+        <div class="chips" id="summary"></div>
+        <div class="muted">Fuso horário do navegador: <span id="tz" class="kbd"></span></div>
+      </div>
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Baliza (data de início)</th>
+            <th>Janela (início → fim)</th>
+            <th class="right">Horas</th>
+            <th>Validações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="footer">Dica: clique em “Detalhes” de uma jornada para ver os intervalos que a compõem.</p>
+    </section>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
