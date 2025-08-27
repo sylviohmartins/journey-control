@@ -1,4 +1,4 @@
-/* style.css — extraído e organizado a partir do basic.html */
+/* style.css — tema, layout e componentes */
 :root {
   --bg: #0b0f1a;
   --panel: #0f172a;
@@ -13,8 +13,6 @@
   --chip: #1f2937;
   --shadow: 0 10px 30px rgba(0, 0, 0, .35);
 }
-
-/* Light/Dark via data-theme no :root */
 :root[data-theme="light"] {
   --bg: #f6f7fb;
   --panel: #ffffff;
@@ -25,30 +23,25 @@
   --chip: #eef2ff;
   --shadow: 0 8px 24px rgba(0, 0, 0, .08);
 }
-:root[data-theme="dark"] { /* valores dark já estão acima */ }
 
 * { box-sizing: border-box }
 html, body { height: 100% }
 body {
   margin: 0;
   font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-  background: radial-gradient(1200px 800px at 10% -10%, rgba(59, 130, 246, .12), transparent 40%), var(--bg);
+  background: radial-gradient(1200px 800px at 10% -10%, rgba(59,130,246,.12), transparent 40%), var(--bg);
   color: var(--text);
 }
-
 .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
 
 /* Header */
-header .header-row {
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 12px; flex-wrap: wrap;
-}
+header .header-row { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 header .title { display:flex; align-items:center; gap:10px; }
-header h1 { font-size: 20px; margin: 0 }
-header p { margin: 6px 0 0; color: var(--muted) }
+header h1 { font-size:20px; margin:0 }
+header p  { margin:6px 0 0; color: var(--muted) }
 
 /* Grid */
-.grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; margin-top: 16px; }
+.grid { display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; margin-top:16px; }
 @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
 
 .card {
@@ -58,103 +51,66 @@ header p { margin: 6px 0 0; color: var(--muted) }
   padding: 16px;
   box-shadow: var(--shadow);
 }
-
 label { display:block; font-weight:600; margin-bottom:6px; }
 
-.row {
-  display:grid; grid-template-columns: 1fr 1fr auto; gap:8px; align-items:center; margin-bottom:8px;
-}
+/* Linha de intervalo */
+.row { display:grid; grid-template-columns: 1fr 1fr auto; gap:8px; align-items:center; margin-bottom:8px; }
 input[type="datetime-local"] {
   width:100%; padding:10px 10px; border-radius:10px; border:1px solid var(--border);
   background: transparent; color: var(--text);
 }
-
-/* Buttons */
-.btn {
-  appearance:none; border:none; border-radius:10px; padding:10px 14px;
-  background: var(--brand); color:#fff; font-weight:700; cursor:pointer;
-  transition: .2s transform ease;
-}
-.btn:disabled { opacity:.6; cursor:not-allowed; }
-.btn.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
-.btn.gray { background: #374151; }
-.btn.danger { background: var(--err); }
-.buttons { display:flex; gap:8px; flex-wrap:wrap; }
-
-.chips { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
-.chip { background: var(--chip); border:1px solid var(--border); padding:6px 10px; border-radius:999px; font-size:12px; }
-
-/* Table */
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 12px 10px; border-bottom: 1px dashed var(--border); vertical-align: top; }
-th { text-align:left; font-size:13px; color: var(--muted); }
-.right { text-align:right; }
-
-.status {
-  display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border);
-}
-.ok { color: var(--ok); }
-.err { color: var(--err); }
-.warn { color: var(--warn); }
-
-details {
-  background: rgba(255,255,255,.03);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:8px 10px;
-}
-summary { cursor:pointer; color: var(--muted); }
-
-.kbd {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 1px 6px;
-}
-.footer { color: var(--muted); font-size:12px; margin-top:8px; }
-
-.toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.seglist { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; color: var(--muted); }
-
-/* Overlay + spinner */
-.overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.35);
-  display: none; align-items: center; justify-content: center; z-index: 50;
-}
-.spinner {
-  width: 56px; height: 56px; border-radius: 50%;
-  border: 6px solid rgba(255,255,255,.25);
-  border-top-color: var(--brand);
-  animation: spin 1s linear infinite;
-  background: radial-gradient(closest-side, rgba(59, 130, 246, .12), transparent);
-  box-shadow: var(--shadow);
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Toast */
-.toast { position: fixed; right:16px; bottom:16px; display:grid; gap:8px; z-index:60; }
-.toast .msg {
-  background: var(--panel); border:1px solid var(--border); border-left:4px solid var(--brand);
-  color:var(--text); padding:10px 12px; border-radius:10px; box-shadow: var(--shadow);
-}
-
-/* === Ícone do calendário/indicadores branco no tema escuro (WebKit/Blink) === */
+/* Ícone nativo do calendário (Chrome/Edge) branco no dark */
 :root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
 :root[data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
 :root[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(1) brightness(1.3);
   opacity: .95;
 }
-
-/* Também inverter clear/spin para inputs no dark (quando aplicável) */
 :root[data-theme="dark"] input::-webkit-clear-button,
 :root[data-theme="dark"] input::-webkit-inner-spin-button,
 :root[data-theme="dark"] input::-webkit-outer-spin-button {
   filter: invert(1) brightness(1.2);
 }
 
-/* Ícones dentro dos botões */
+/* Botões */
+.btn { appearance:none; border:none; border-radius:10px; padding:10px 14px; background: var(--brand); color: #fff; font-weight:700; cursor:pointer; }
+.btn.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.buttons { display:flex; gap:8px; flex-wrap:wrap; }
 .btn .ico { display:inline-flex; align-items:center; justify-content:center; margin-right:8px; }
 .btn .ico svg { width:1em; height:1em; stroke: currentColor; fill: none; stroke-width: 2; }
-.btn.only-icon .ico { margin-right: 0; }
+
+.kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--panel-2); border:1px solid var(--border); border-radius:6px; padding:1px 6px; }
+.footer { color: var(--muted); font-size:12px; margin-top:8px; }
+
+/* Tabela */
+table { width:100%; border-collapse: collapse; }
+th, td { padding: 12px 10px; border-bottom: 1px dashed var(--border); vertical-align: top; }
+th { text-align:left; font-size:13px; color: var(--muted); }
+.right { text-align:right; }
+
+/* Chips / Status */
+.chips { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+.chip { background: var(--chip); border:1px solid var(--border); padding:6px 10px; border-radius:999px; font-size:12px; }
+.status { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border); }
+.ok { color: var(--ok); }
+.err { color: var(--err); }
+.warn { color: var(--warn); }
+
+/* Details */
+details { background: rgba(255,255,255,.03); border:1px solid var(--border); border-radius:10px; padding:8px 10px; }
+summary { cursor:pointer; color: var(--muted); }
+
+/* Overlay + spinner */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: center; justify-content: center; z-index: 50; }
+.spinner {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 6px solid rgba(255,255,255,.25); border-top-color: var(--brand);
+  animation: spin 1s linear infinite;
+  background: radial-gradient(closest-side, rgba(59,130,246,.12), transparent);
+  box-shadow: var(--shadow);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast */
+.toast { position: fixed; right:16px; bottom:16px; display:grid; gap:8px; z-index:60; }
+.toast .msg { background: var(--panel); border:1px solid var(--border); border-left:4px solid var(--brand); color:var(--text); padding:10px 12px; border-radius:10px; box-shadow: var(--shadow); }
