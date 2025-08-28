@@ -8,7 +8,16 @@ const toast = $('#toast');
 
 /* ======= Util ======= */
 const p2 = (n)=>String(n).padStart(2,'0');
-const fmt = (dt)=>`${dt.getFullYear()}-${p2(dt.getMonth()+1)}-${p2(dt.getDate())} ${p2(dt.getHours())}:${p2(dt.getMinutes())}`;
+const dtFmt = new Intl.DateTimeFormat('sv-SE', {
+  hour12:false, year:'numeric', month:'2-digit', day:'2-digit',
+  hour:'2-digit', minute:'2-digit'
+});
+const fmt = dt => dtFmt.format(dt);
+const toInput = dt => {
+  const off = dt.getTimezoneOffset();
+  return new Date(dt.getTime() - off*60000).toISOString().slice(0,16);
+};
+const parseLocal = s => new Date(s);
 const fmtH = (ms)=>{ const m=Math.round(ms/60000); const h=Math.floor(m/60), mm=m%60; return `${h}h${p2(mm)}`; };
 function notify(msg, ms=2200){ const el=document.createElement('div'); el.className='msg'; el.textContent=msg; toast.appendChild(el); setTimeout(()=>el.remove(), ms); }
 
@@ -50,7 +59,7 @@ function parseRows(){
   for(const r of rows.querySelectorAll('.row')){
     const [i1,i2]=r.querySelectorAll('input');
     if(!i1.value || !i2.value) continue;
-    const start=new Date(i1.value), end=new Date(i2.value);
+    const start=parseLocal(i1.value), end=parseLocal(i2.value);
     if(isNaN(start) || isNaN(end)) continue;
     if(end<=start){ notify('Há intervalo com fim <= início.'); return null; }
     data.push({start, end});
@@ -173,7 +182,7 @@ function toCSV(rows, headers){
 }
 function exportJornadasCSV(jornadas){
   const rows=jornadas.map(j=>({
-    jornada:j.idx, baliza: new Date(j.start).toLocaleDateString(),
+    jornada:j.idx, baliza: new Date(j.start).toLocaleDateString('pt-BR'),
     inicio: fmt(j.start), fim: fmt(j.end), horas: fmtH(j.work),
     limite10h: j.flags.includes('Dentro do limite de 10h')?'OK':'EXCEDEU',
     interjornada: j.idx>1 ? (j.interjornadaOK?'OK':`INSUFICIENTE (${fmtH(j.interGap)})`) : '—'
@@ -194,7 +203,7 @@ function download(name, content, mime='text/plain'){
 
 $('#exportJ').onclick=()=>{ const data=parseRows(); if(!data) return; download('jornadas.csv', exportJornadasCSV(analyzeNow(data)), 'text/csv'); };
 $('#exportS').onclick=()=>{ const data=parseRows(); if(!data) return; download('segmentos.csv', exportSegmentosCSV(analyzeNow(data)), 'text/csv'); };
-$('#exportJSON').onclick=()=>{ const data=parseRows(); if(!data) return; download('intervalos.json', JSON.stringify(data.map(d=>({start:d.start.toISOString(), end:d.end.toISOString()})), null, 2), 'application/json'); };
+$('#exportJSON').onclick=()=>{ const data=parseRows(); if(!data) return; download('intervalos.json', JSON.stringify(data.map(d=>({start:toInput(d.start), end:toInput(d.end)})), null, 2), 'application/json'); };
 
 const fileJSON = $('#fileJSON');
 $('#importBtn').addEventListener('click', ()=> fileJSON.click());
@@ -206,7 +215,7 @@ fileJSON.addEventListener('change', (ev)=>{
       const arr=JSON.parse(String(reader.result));
       if(!Array.isArray(arr)) throw new Error('JSON deve ser um array de objetos {{start, end}}.');
       clearRows();
-      arr.forEach(d=> newRow(String(d.start).slice(0,16), String(d.end).slice(0,16)));
+      arr.forEach(d=> newRow(d.start, d.end));
       notify('JSON importado.');
     }catch(e){ notify('JSON inválido.'); }
     finally { fileJSON.value=''; }
@@ -246,21 +255,21 @@ $('#analyze').onclick=()=>{
   setTimeout(()=>{
     const jornadas=analyzeNow(data);
     render(jornadas);
-    localStorage.setItem('jornada:data', JSON.stringify(data.map(d=>({start:d.start.toISOString(), end:d.end.toISOString()}))));
+    localStorage.setItem('jornada:data', JSON.stringify(data.map(d=>({start:toInput(d.start), end:toInput(d.end)}))));
     overlay.style.display='none';
     notify('Análise concluída.');
   }, 1200); // tempo levemente maior para visualizar o loading
 };
 $('#save').onclick=()=>{
   const data=parseRows(); if(!data) return;
-  localStorage.setItem('jornada:data', JSON.stringify(data.map(d=>({start:d.start.toISOString(), end:d.end.toISOString()}))));
+  localStorage.setItem('jornada:data', JSON.stringify(data.map(d=>({start:toInput(d.start), end:toInput(d.end)}))));
   notify('Salvo localmente.');
 };
 $('#load').onclick=()=>{
   const raw=localStorage.getItem('jornada:data'); if(!raw){ notify('Nada salvo.'); return; }
   try{
     const arr=JSON.parse(raw); clearRows();
-    arr.forEach(d=> newRow(String(d.start).slice(0,16), String(d.end).slice(0,16)));
+    arr.forEach(d=> newRow(d.start, d.end));
     notify('Carregado do navegador.');
   }catch(e){ notify('Erro ao carregar.'); }
 };
